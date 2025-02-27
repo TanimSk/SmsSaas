@@ -24,8 +24,7 @@ def process_messages():
                     "chat_group",
                     {
                         "type": "chat.message",
-                        "message": msg.message,
-                        "recipient": msg.recipient,
+                        "message": f"{msg.recipient}|{msg.message}",
                     },
                 )
                 msg.status = "SENT"

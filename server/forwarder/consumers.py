@@ -16,12 +16,15 @@ class MessageConsumer(AsyncWebsocketConsumer):
         message = data.get("message", "")
         recipient = data.get("recipient", "")
 
+        print(f"Received message: {message} for {recipient}")
+
         # Broadcast message to all WebSocket clients
         await self.channel_layer.group_send(
             "chat_group",
-            {"type": "chat.message", "message": message, "recipient": recipient},
+            {"type": "chat.message", "message": f"{recipient}|{message}"},
         )
 
     async def chat_message(self, event):
         """Send message to WebSocket clients"""
-        await self.send(text_data=json.dumps({"message": event["message"]}))
+        message = event["message"]
+        await self.send(text_data=message)  
