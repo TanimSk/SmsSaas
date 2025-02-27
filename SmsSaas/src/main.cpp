@@ -1,10 +1,11 @@
-#include <HardwareSerial.h>
+#include <SoftwareSerial.h>
 
-#define RX 32
-#define TX 33
-#define Button 25
+#define TX D1     // GPIO5 (D1 on most ESP8266 boards)
+#define RX D2     // GPIO4 (D2 on most ESP8266 boards)
+#define Button D3 // GPIO0 (D3 on most ESP8266 boards)
+#define BUILTIN_LED D4
 
-HardwareSerial MY_GSM(1); // Use Serial1 (ESP32 supports multiple hardware serials)
+SoftwareSerial MY_GSM(RX, TX); // Create a SoftwareSerial instance for GSM communication
 
 char Phone_No[] = "+8801730288553";
 
@@ -12,18 +13,22 @@ void Make_Call(const char *number);
 
 void setup()
 {
-  Serial.begin(9600);
-  MY_GSM.begin(9600, SERIAL_8N1, RX, TX); // Initialize Serial1 with proper pins
+  Serial.begin(9600); // Debugging on Serial Monitor
+  MY_GSM.begin(9600); // Initialize SoftwareSerial for GSM
   pinMode(Button, INPUT_PULLUP);
+  pinMode(BUILTIN_LED, OUTPUT);
+  digitalWrite(BUILTIN_LED, LOW);
 }
 
 void loop()
 {
+  digitalWrite(BUILTIN_LED, LOW);
   if (digitalRead(Button) == LOW) // Button pressed
   {
     delay(50);                      // Basic debounce
     if (digitalRead(Button) == LOW) // Ensure it's still pressed
     {
+      digitalWrite(BUILTIN_LED, HIGH);
       Serial.println("Calling...");
       Make_Call(Phone_No);
       while (digitalRead(Button) == LOW)
