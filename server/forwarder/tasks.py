@@ -30,7 +30,7 @@ def process_messages(self):
     try:
         with connection.cursor():
             messages = Message.objects.filter(
-                status="QUEUED", inappropiate_content=False
+                status="QUEUED"
             ).order_by("created_at")
             for i, msg in enumerate(messages):
                 print(f"Message {msg.id} sent to {msg.recipient}")

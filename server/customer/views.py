@@ -27,7 +27,7 @@ class AuthenticateOnlyCustomer(BasePermission):
 
 # Pagination Config
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 500
     page_query_param = "p"
@@ -90,7 +90,7 @@ class SMSView(APIView):
     permission_classes = [AuthenticateOnlyCustomer]
 
     def get(self, request, *args, **kwargs):
-        messages = Message.objects.filter(customer=request.user.customer)
+        messages = Message.objects.filter(customer=request.user.customer).order_by("-created_at")
         paginator = StandardResultsSetPagination()
         result_page = paginator.paginate_queryset(messages, request)
         serializer = MessageSerializer(result_page, many=True)

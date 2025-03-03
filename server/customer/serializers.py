@@ -3,6 +3,7 @@ from rest_framework import serializers
 from customer.models import Customer
 from django.utils import timezone
 from datetime import timedelta
+from forwarder.models import Message
 import random
 
 
@@ -52,12 +53,20 @@ class CustomRegistrationSerializer(RegisterSerializer):
         user.save()
 
         # Create Customer instance
+        otp = generate_otp()
         customer = Customer.objects.create(
             customer=user,
             name=self.validated_data.get("name"),
             phone_number=self.validated_data.get("phone_number"),
-            otp=generate_otp(),
+            otp=otp,
             expired_at=timezone.localtime(timezone.now()) + timedelta(minutes=10),
+        )
+
+        # send otp to user
+        Message.objects.create(
+            status="QUEUED",
+            recipient=customer.phone_number,
+            message=f"Your OTP is {otp}",
         )
 
         return user

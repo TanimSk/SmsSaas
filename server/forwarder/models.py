@@ -16,10 +16,10 @@ class Message(models.Model):
         ("SENT", "Sent"),
         ("RECEIVED", "Received"),
         ("FAILED", "Failed"),
+        ("REJECTED", "Rejected"),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="QUEUED")
     recipient = models.CharField(max_length=15)
-    message = models.CharField(max_length=500)
-    inappropiate_content = models.BooleanField(default=False)
+    message = models.CharField(max_length=160)
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)

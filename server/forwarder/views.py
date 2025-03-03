@@ -1,4 +1,4 @@
-from forwarder.serializers import MessageSerializer
+from forwarder.serializers import MessageSerializer, BulkMessageSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,31 +9,39 @@ from customer.models import Customer
 
 class MessageListCreateView(APIView):
     def post(self, request):
-        serializer = MessageSerializer(data=request.data)
 
-        if not request.GET.get("key"):
+        if request.GET.get("type") == "bulk":
+            serializer = BulkMessageSerializer(data=request.data)
+        else:
+            serializer = MessageSerializer(data=request.data)
+
+        if not (
+            request.GET.get("key") or (request.user and request.user.is_authenticated)
+        ):
             return Response(
                 {"success": False, "message": "API key is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if serializer.is_valid():
-            if valid_sms(serializer.validated_data["message"]):
-                # reduce user quota
-                try:
+            try:
+                if request.user and request.user.is_authenticated:
+                    user = Customer.objects.get(customer=request.user)
+                else:
                     user = Customer.objects.get(api_key=request.GET.get("key"))
 
-                except Customer.DoesNotExist:
-                    return Response(
-                        {
-                            "success": False,
-                            "message": "Invalid API key",
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+            except Customer.DoesNotExist:
+                return Response(
+                    {
+                        "success": False,
+                        "message": "Invalid API key",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-                admin_info = AdminInfo.objects.first()
+            admin_info = AdminInfo.objects.first()
 
+            if valid_sms(serializer.validated_data["message"]):
                 # --- Check if user has enough quota ---
                 if user.sms_quota == 0:
                     return Response(
@@ -54,21 +62,25 @@ class MessageListCreateView(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
+                # reduce user quota
                 user.sms_quota -= 1
                 user.save()
 
                 # reduce overall quota
                 admin_info.total_sms_quota -= 1
                 admin_info.save()
-
+                
+                # add message to queue
+                serializer.validated_data["status"] = "QUEUED"
                 serializer.validated_data["customer"] = user
                 serializer.save()
-                serializer.data.pop("inappropiate_content")
+
                 return Response(
                     {"success": True, **serializer.data}, status=status.HTTP_201_CREATED
                 )
             else:
-                serializer.validated_data["inappropiate_content"] = True
+                serializer.validated_data["status"] = "REJECTED"
+                serializer.validated_data["customer"] = user
                 serializer.save()
                 return Response(
                     {
