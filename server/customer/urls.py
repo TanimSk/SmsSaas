@@ -1,8 +1,5 @@
 from django.urls import path
-from customer.views import (
-    ConsumerRegistrationView,
-    CustomerProfileView,
-)
+from customer.views import ConsumerRegistrationView, CustomerProfileView, APIKeyView
 from administrator.auth_view import VerifyOTP
 
 urlpatterns = [
@@ -20,5 +17,10 @@ urlpatterns = [
         "profile/",
         CustomerProfileView.as_view(),
         name="customer_profile",
+    ),
+    path(
+        "api-key/",
+        APIKeyView.as_view(),
+        name="api_key",
     ),
 ]

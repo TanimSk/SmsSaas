@@ -1,5 +1,5 @@
 from django.contrib import admin
-from administrator.models import User
+from administrator.models import User, AdminInfo
 
 admin.site.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -19,3 +19,21 @@ class UserAdmin(admin.ModelAdmin):
     )
 
     ordering = ('username',)
+
+admin.site.register(AdminInfo)
+class AdminInfoAdmin(admin.ModelAdmin):
+    list_display = ('user', 'total_sms_quota')
+    search_fields = ('user', 'total_sms_quota')
+    readonly_fields = ()
+    filter_horizontal = ()
+    list_filter = ()
+    fieldsets = ()
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('user', 'total_sms_quota')}
+         ),
+    )
+
+    ordering = ('user',)

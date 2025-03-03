@@ -10,3 +10,9 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class AdminInfo(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    # Other fields related to the admin account.
+    total_sms_quota = models.IntegerField(default=0)

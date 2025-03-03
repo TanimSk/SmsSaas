@@ -6,6 +6,8 @@ from customer.serializers import (
     CustomRegistrationSerializer,
     CustomerProfileSerializer,
 )
+from rest_framework.views import APIView
+import uuid
 
 
 # Authenticate User Only Class
@@ -23,12 +25,50 @@ class ConsumerRegistrationView(RegisterView):
     serializer_class = CustomRegistrationSerializer
 
 
-class CustomerProfileView(generics.RetrieveUpdateAPIView):
+class CustomerProfileView(APIView):
     serializer_class = CustomerProfileSerializer
     permission_classes = [AuthenticateOnlyCustomer]
 
-    def get_object(self):
-        return self.request.user.customer
+    def get(self, request):
+        customer = request.user.customer
+        serializer = self.serializer_class(customer)
+        return JsonResponse(serializer.data)
 
-    def get_queryset(self):
-        return self.request.user.customer
+    def put(self, request):
+        customer = request.user.customer
+        serializer = self.serializer_class(customer, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "Profile updated successfully.",
+                }
+            )
+        return JsonResponse(
+            {
+                "success": False,
+                "message": serializer.errors,
+            }
+        )
+
+
+class APIKeyView(APIView):
+    serializer_class = CustomerProfileSerializer
+    permission_classes = [AuthenticateOnlyCustomer]
+
+    def get(self, request, *args, **kwargs):
+        customer = request.user.customer
+        return JsonResponse({"api_key": customer.api_key})
+    
+    def post(self, request, *args, **kwargs):
+        customer = request.user.customer
+        customer.api_key = "ssb_" + str(uuid.uuid4())
+        customer.save()
+        return JsonResponse({"api_key": customer.api_key})
+    
+    def delete(self, request, *args, **kwargs):
+        customer = request.user.customer
+        customer.api_key = None
+        customer.save()
+        return JsonResponse({"message": "API key deleted successfully."})

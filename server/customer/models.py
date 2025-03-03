@@ -13,6 +13,9 @@ class Customer(models.Model):
     api_key = models.CharField(null=True, blank=True, max_length=300)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # sms, 5 sms is free for each customer
+    sms_quota = models.IntegerField(default=10)
+
     # validation
     otp = models.CharField(null=True, blank=True, max_length=6)
     expired_at = models.DateTimeField(null=True)

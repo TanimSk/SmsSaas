@@ -17,13 +17,15 @@ class CustomRegistrationSerializer(RegisterSerializer):
         required=True,
         max_length=15,
         min_length=10,
-        help_text="Enter a valid phone number."
+        help_text="Enter a valid phone number.",
     )
 
     def validate_phone_number(self, value):
         """Ensure the phone number is unique."""
         if Customer.objects.filter(phone_number=value).exists():
-            raise serializers.ValidationError("User with this phone number already exists.")
+            raise serializers.ValidationError(
+                "User with this phone number already exists."
+            )
         return value
 
     def validate_email(self, value):
@@ -35,10 +37,12 @@ class CustomRegistrationSerializer(RegisterSerializer):
     def get_cleaned_data(self):
         """Ensure extra fields are included in registration."""
         data = super().get_cleaned_data()
-        data.update({
-            "name": self.validated_data.get("name", ""),
-            "phone_number": self.validated_data.get("phone_number", ""),
-        })
+        data.update(
+            {
+                "name": self.validated_data.get("name", ""),
+                "phone_number": self.validated_data.get("phone_number", ""),
+            }
+        )
         return data
 
     def save(self, request):
@@ -60,8 +64,9 @@ class CustomRegistrationSerializer(RegisterSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="customer.email", read_only=True)
+
     class Meta:
         model = Customer
         exclude = ("id", "otp", "is_verified", "expired_at")
         read_only_fields = ("customer",)
-        depth = 1
