@@ -61,6 +61,7 @@ class MessageListCreateView(APIView):
                 admin_info.total_sms_quota -= 1
                 admin_info.save()
 
+                serializer.validated_data["customer"] = user
                 serializer.save()
                 serializer.data.pop("inappropiate_content")
                 return Response(

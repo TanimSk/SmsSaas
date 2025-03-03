@@ -3,6 +3,13 @@ from uuid import uuid4
 
 
 class Message(models.Model):
+    customer = models.ForeignKey(
+        "customer.Customer",
+        on_delete=models.CASCADE,
+        related_name="messages",
+        blank=True,
+        null=True,
+    )
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     STATUS_CHOICES = [
         ("QUEUED", "Queued"),

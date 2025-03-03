@@ -1,5 +1,5 @@
 from django.urls import path
-from customer.views import ConsumerRegistrationView, CustomerProfileView, APIKeyView
+from customer.views import ConsumerRegistrationView, CustomerProfileView, APIKeyView, SMSView
 from administrator.auth_view import VerifyOTP
 
 urlpatterns = [
@@ -22,5 +22,10 @@ urlpatterns = [
         "api-key/",
         APIKeyView.as_view(),
         name="api_key",
+    ),
+    path(
+        "all-sms/",
+        SMSView.as_view(),
+        name="sms",
     ),
 ]
