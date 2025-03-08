@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <WebSocketClient.h>
+#include <WiFiClientSecure.h>
 
 #define TX 22
 #define RX 23         // GPIO16 (RX on ESP32)
@@ -8,13 +9,15 @@
 const char *ssid = "কালাভূনা";       // WiFi SSID
 const char *password = "sabir4141"; // WiFi Password
 
-WebSocketClient wsClient; // WebSocket client instance
+WebSocketClient wsClient;    // WebSocket client instance
+WiFiClientSecure wifiClient; // Use WiFiClientSecure for SSL
 
 HardwareSerial SIM900(1); // Use hardware serial 1 for SIM900 (you can also use Serial1, Serial2, etc.)
 
-WiFiClient wifiClient;
+// WiFiClient wifiClient;
 
 void Send_SMS(const char *number, const char *msg);
+void blinkLED(bool longBlink);
 
 void setup()
 {
@@ -28,44 +31,45 @@ void setup()
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
-    digitalWrite(BUILTIN_LED, HIGH);
-    delay(250);
+    blinkLED(false);
     Serial.print(".");
-    digitalWrite(BUILTIN_LED, LOW);
-    delay(250);
   }
   Serial.println("\nConnected to WiFi");
+  delay(1000);
+
+  wifiClient.setInsecure(); // Bypass SSL certificate verification (not recommended for production)
 
   // Connect to WebSocket server
-  if (wifiClient.connect("192.168.1.107", 8000))
+  if (wifiClient.connect("33dd241f-eaf3.ongshak.com", 443))
   {
     Serial.println("Connected to WebSocket server");
   }
   else
   {
-    Serial.println("Connection failed.");
     while (1)
     {
-      // Hang on failure
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(500);
     }
   }
 
   // Handshake with the server
   wsClient.path = "/ws/messages/";
-  wsClient.host = "192.168.1.107";
+  wsClient.host = "33dd241f-eaf3.ongshak.com";
   if (wsClient.handshake(wifiClient))
   {
     Serial.println("Handshake successful");
   }
   else
   {
-    Serial.println("Handshake failed.");
     while (1)
     {
-      // Hang on failure
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(500);
     }
   }
 
+  blinkLED(true);
   // Wait to ensure the connection is established
   delay(1000);
 }
@@ -102,15 +106,15 @@ void loop()
   }
   else
   {
-    Serial.println("Client disconnected.");
     while (1)
     {
-      // Hang on disconnect.
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(500);
     }
   }
 
   // Wait to fully let the client disconnect
-  delay(3000);
+  delay(5000);
 }
 
 // Function to Send SMS via SIM900A
@@ -129,4 +133,19 @@ void Send_SMS(const char *number, const char *msg)
 
   digitalWrite(BUILTIN_LED, LOW); // Turn off LED
   Serial.println("SMS Sent!");
+}
+
+void blinkLED(bool longBlink)
+{
+  if (longBlink)
+  {
+    digitalWrite(BUILTIN_LED, HIGH);
+    delay(2000);
+    digitalWrite(BUILTIN_LED, LOW);
+    return;
+  }
+  digitalWrite(BUILTIN_LED, HIGH);
+  delay(500);
+  digitalWrite(BUILTIN_LED, LOW);
+  delay(500);
 }

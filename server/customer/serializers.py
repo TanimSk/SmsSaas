@@ -66,7 +66,7 @@ class CustomRegistrationSerializer(RegisterSerializer):
         Message.objects.create(
             status="QUEUED",
             recipient=customer.phone_number,
-            message=f"Your OTP is {otp}",
+            message=f"Your OTP for CloudSMS BD is {otp}",
         )
 
         return user
@@ -78,4 +78,4 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         exclude = ("id", "otp", "is_verified", "expired_at")
-        read_only_fields = ("customer",)
+        read_only_fields = ("customer", "phone_number", )

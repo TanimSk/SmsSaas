@@ -23,7 +23,7 @@ class MessageListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             try:
                 if request.user and request.user.is_authenticated:
                     user = Customer.objects.get(customer=request.user)
@@ -88,5 +88,4 @@ class MessageListCreateView(APIView):
                         "message": "Inappropriate content is not allowed",
                     },
                     status=status.HTTP_400_BAD_REQUEST,
-                )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                )        

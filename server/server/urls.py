@@ -26,13 +26,15 @@ from dj_rest_auth.views import (
     PasswordChangeView,
 )
 from django.views.generic import TemplateView
-from administrator.auth_view import LoginWthPermission, CustomPasswordChangeView
+from administrator.auth_view import LoginWthPermission, CustomPasswordChangeView, CustomLogout
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     # ---------- Auth ------------
     path("rest-auth/login/", LoginWthPermission.as_view(), name="login_view"),
+    path("rest-auth/logout/", CustomLogout.as_view(), name="login_view"),
+
     # Password Change
     path(
         "rest-auth/password/change/",

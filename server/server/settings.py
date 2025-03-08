@@ -28,7 +28,19 @@ SECRET_KEY = "django-insecure-a4kfns)7g*zkmlp0t@tpf$&(^24#7ba_s+!u)fcs6q-y_q7&10
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CORS_ALLOWED_ORIGINS = [
+    "https://otp-njefu3j72-md-tofaal-ahmeds-projects.vercel.app",
+    "http://localhost:3000",  # Replace with your frontend's local URL (React, Vue, etc.)
+    "http://127.0.0.1:3000",  # Some setups use 127.0.0.1 instead of localhost
+]
+CORS_ALLOW_CREDENTIALS = True  # Allow sending cookies in requests
+
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://otp-njefu3j72-md-tofaal-ahmeds-projects.vercel.app"
+    "https://33dd241f-eaf3.ongshak.com",
+    "http://localhost:8000",
+]
 
 
 # Application definition
@@ -37,7 +49,7 @@ INSTALLED_APPS = [
     # DRF
     "rest_framework",
     "rest_framework.authtoken",
-    "rest_framework_simplejwt",
+    "rest_framework_simplejwt",    
     # All Auth
     "dj_rest_auth",
     "django.contrib.sites",
@@ -74,6 +86,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "administrator.middleware.CookiesToRequestHeader",
 ]
 
 ROOT_URLCONF = "server.urls"
@@ -141,6 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ########################## JWT Config ##########################
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "administrator.views.custom_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
@@ -151,11 +165,15 @@ REST_FRAMEWORK = {
     # "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'access'
+JWT_AUTH_REFRESH_COOKIE = 'refresh'
+JWT_AUTH_SAMESITE = "none"
+JWT_AUTH_HTTPONLY = True
+JWT_AUTH_COOKIE_SECURE = False  # Set to True in production
+
 REST_AUTH = {
-    "USE_JWT": True,
-    "JWT_AUTH_COOKIE": "access",
-    "JWT_AUTH_REFRESH_COOKIE": "refresh",
-    "JWT_AUTH_HTTPONLY": False,
+     "USE_JWT": True,
 }
 
 SIMPLE_JWT = {
@@ -234,10 +252,10 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = False
 # REDIS
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
-REDIS_DB = 0
+REDIS_DB = 2
 
 # CELERY WORKER SETUP
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/2"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TIMEZONE = "Asia/Dhaka"
 

@@ -36,6 +36,38 @@ class StandardResultsSetPagination(PageNumberPagination):
 class ConsumerRegistrationView(RegisterView):
     serializer_class = CustomRegistrationSerializer
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+
+        # Extract tokens from the response
+        if "access" in response.data and "refresh" in response.data:
+            access_token = response.data["access"]
+            refresh_token = response.data["refresh"]
+
+            # Set tokens in HttpOnly cookies
+            response.set_cookie(
+                key="access_token",
+                value=access_token,
+                httponly=True,
+                secure=True,  # Ensure HTTPS is used in production
+                samesite="None",
+                max_age=60 * 60 * 24 * 7,  # 1 week
+            )
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                secure=True,
+                samesite="None",
+                max_age=60 * 60 * 24 * 30,  # 1 month
+            )
+
+            # Remove tokens from the response body (optional)
+            del response.data["access"]
+            del response.data["refresh"]
+
+        return response
+
 
 class CustomerProfileView(APIView):
     serializer_class = CustomerProfileSerializer
@@ -49,7 +81,7 @@ class CustomerProfileView(APIView):
     def put(self, request):
         customer = request.user.customer
         serializer = self.serializer_class(customer, data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return JsonResponse(
                 {
@@ -57,12 +89,6 @@ class CustomerProfileView(APIView):
                     "message": "Profile updated successfully.",
                 }
             )
-        return JsonResponse(
-            {
-                "success": False,
-                "message": serializer.errors,
-            }
-        )
 
 
 class APIKeyView(APIView):
@@ -90,7 +116,9 @@ class SMSView(APIView):
     permission_classes = [AuthenticateOnlyCustomer]
 
     def get(self, request, *args, **kwargs):
-        messages = Message.objects.filter(customer=request.user.customer).order_by("-created_at")
+        messages = Message.objects.filter(customer=request.user.customer).order_by(
+            "-created_at"
+        )
         paginator = StandardResultsSetPagination()
         result_page = paginator.paginate_queryset(messages, request)
         serializer = MessageSerializer(result_page, many=True)

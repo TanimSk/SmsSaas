@@ -1,6 +1,11 @@
 from django.urls import path
-from customer.views import ConsumerRegistrationView, CustomerProfileView, APIKeyView, SMSView
-from administrator.auth_view import VerifyOTP
+from customer.views import (
+    ConsumerRegistrationView,
+    CustomerProfileView,
+    APIKeyView,
+    SMSView,
+)
+from administrator.auth_view import VerifyOTP, ResendOTP
 
 urlpatterns = [
     path(
@@ -12,6 +17,11 @@ urlpatterns = [
         "verify-otp/",
         VerifyOTP.as_view(),
         name="verify_otp",
+    ),
+    path(
+        "resend-otp/",
+        ResendOTP.as_view(),
+        name="resend_otp",
     ),
     path(
         "profile/",
